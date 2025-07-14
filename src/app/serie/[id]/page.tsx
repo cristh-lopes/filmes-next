@@ -1,36 +1,19 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useFetch } from "@/hooks/useFetch";
-import type { MovieDetails } from "@/types/Tmdb";
-import { use } from 'react';
+import type { TvShowDetails } from "@/types/Tmdb";
 
-export default function MoviePage({ params }: { params: Promise<{ id: string }> }) {
+export default function TvShowPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<'overview' | 'cast' | 'videos' | 'similar'>('overview');
-  const { data: movie, error, loading } = useFetch<MovieDetails>(`/filmes/${id}`);
+  const [activeTab, setActiveTab] = useState<'overview' | 'seasons' | 'cast' | 'videos' | 'similar'>('overview');
+  const { data: tvShow, error, loading } = useFetch<TvShowDetails>(`/series/${id}`);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatRuntime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}min`;
-  };
-
-  const getDirector = () => {
-    if (!movie?.credits?.crew) return null;
-    return movie.credits.crew.find(person => person.job === 'Director');
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Data não disponível";
+    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   if (loading) {
@@ -38,21 +21,21 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
       <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white text-lg">Carregando detalhes do filme...</p>
+          <p className="text-white text-lg">Carregando detalhes da série...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !movie) {
+  if (error || !tvShow) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Erro ao carregar filme</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">Erro ao carregar série</h1>
           <p className="text-gray-400 mb-6">Tente novamente mais tarde</p>
           <Link 
             href="/"
-            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-600 transition-all duration-200"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
           >
             Voltar ao Início
           </Link>
@@ -61,16 +44,14 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
     );
   }
 
-  const director = getDirector();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-indigo-900">
       {/* Hero Section with Backdrop */}
       <div className="relative h-96 md:h-[500px] overflow-hidden">
-        {movie.backdrop_path && (
+        {tvShow.backdrop_path && (
           <Image
-            src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-            alt={movie.title}
+            src={`https://image.tmdb.org/t/p/original${tvShow.backdrop_path}`}
+            alt={tvShow.name}
             width={1200}
             height={400}
             className="object-cover w-full h-full"
@@ -90,14 +71,14 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
           </Link>
         </div>
 
-        {/* Movie Info Overlay */}
+        {/* TvShow Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 items-end">
             {/* Poster */}
             <div className="relative w-48 h-72 rounded-lg overflow-hidden shadow-2xl">
               <Image
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
+                src={`https://image.tmdb.org/t/p/w500${tvShow.poster_path}`}
+                alt={tvShow.name}
                 width={192}
                 height={288}
                 className="object-cover w-full h-full"
@@ -106,28 +87,28 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
             
             {/* Title and Basic Info */}
             <div className="flex-1 text-white">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">{movie.title}</h1>
-              {movie.tagline && (
-                <p className="text-xl text-gray-300 mb-4 italic">&quot;{movie.tagline}&quot;</p>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4">{tvShow.name}</h1>
+              {tvShow.tagline && (
+                <p className="text-xl text-gray-300 mb-4 italic">&quot;{tvShow.tagline}&quot;</p>
               )}
               
               <div className="flex flex-wrap items-center gap-4 mb-4 text-sm">
                 <span className="bg-yellow-500 text-black px-2 py-1 rounded font-semibold">
-                  ⭐ {movie.vote_average.toFixed(1)}
+                  ⭐ {tvShow.vote_average.toFixed(1)}
                 </span>
                 <span className="text-gray-300">
-                  {new Date(movie.release_date).getFullYear()}
+                  {formatDate(tvShow.first_air_date)}
                 </span>
-                {movie.runtime && (
-                  <span className="text-gray-300">{formatRuntime(movie.runtime)}</span>
-                )}
                 <span className="text-gray-300">
-                  {movie.genres?.map(genre => genre.name).join(', ')}
+                  {tvShow.number_of_seasons} temporada{tvShow.number_of_seasons > 1 ? 's' : ''}
+                </span>
+                <span className="text-gray-300">
+                  {tvShow.genres?.map(genre => genre.name).join(', ')}
                 </span>
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {movie.genres?.slice(0, 3).map(genre => (
+                {tvShow.genres?.slice(0, 3).map(genre => (
                   <span 
                     key={genre.id}
                     className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm"
@@ -148,19 +129,20 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
           <div className="lg:col-span-2">
             {/* Tabs */}
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-1 mb-6">
-              <div className="flex space-x-1">
+              <div className="flex space-x-1 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Sinopse', icon: '📖' },
+                  { id: 'seasons', label: 'Temporadas', icon: '📺' },
                   { id: 'cast', label: 'Elenco', icon: '🎭' },
                   { id: 'videos', label: 'Vídeos', icon: '🎬' },
                   { id: 'similar', label: 'Similares', icon: '🔍' }
                 ].map(tab => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as 'overview' | 'cast' | 'videos' | 'similar')}
-                    className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 ${
+                    onClick={() => setActiveTab(tab.id as 'overview' | 'seasons' | 'cast' | 'videos' | 'similar')}
+                    className={`flex-shrink-0 py-3 px-4 rounded-md font-medium transition-all duration-200 ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                         : 'text-gray-300 hover:text-white hover:bg-white/10'
                     }`}
                   >
@@ -176,37 +158,68 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
               {activeTab === 'overview' && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-4">Sinopse</h2>
-                  <p className="text-gray-300 leading-relaxed mb-6">{movie.overview}</p>
+                  <p className="text-gray-300 leading-relaxed mb-6">{tvShow.overview}</p>
                   
-                  {director && (
+                  {tvShow.created_by && tvShow.created_by.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-white mb-2">Direção</h3>
-                      <p className="text-gray-300">{director.name}</p>
+                      <h3 className="text-lg font-semibold text-white mb-2">Criado por</h3>
+                      <p className="text-gray-300">{tvShow.created_by.map(creator => creator.name).join(', ')}</p>
                     </div>
                   )}
                   
-                  {movie.budget > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Orçamento</h3>
-                        <p className="text-gray-300">{formatCurrency(movie.budget)}</p>
-                      </div>
-                      {movie.revenue > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-white mb-2">Receita</h3>
-                          <p className="text-gray-300">{formatCurrency(movie.revenue)}</p>
-                        </div>
-                      )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">Status</h3>
+                      <p className="text-gray-300">{tvShow.status}</p>
                     </div>
-                  )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">Tipo</h3>
+                      <p className="text-gray-300">{tvShow.type}</p>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {activeTab === 'cast' && movie.credits?.cast && (
+              {activeTab === 'seasons' && tvShow.seasons && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Temporadas</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {tvShow.seasons.map(season => (
+                      <div key={season.id} className="bg-white/5 rounded-lg p-4">
+                        <div className="flex items-center space-x-4">
+                          {season.poster_path && (
+                            <div className="relative w-16 h-24 rounded overflow-hidden flex-shrink-0">
+                              <Image
+                                src={`https://image.tmdb.org/t/p/w200${season.poster_path}`}
+                                alt={season.name}
+                                width={64}
+                                height={96}
+                                className="object-cover w-full h-full"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h4 className="text-white font-semibold">{season.name}</h4>
+                            <p className="text-gray-400 text-sm">{season.episode_count} episódios</p>
+                            {season.air_date && (
+                              <p className="text-gray-400 text-sm">{formatDate(season.air_date)}</p>
+                            )}
+                          </div>
+                        </div>
+                        {season.overview && (
+                          <p className="text-gray-300 text-sm mt-3 line-clamp-3">{season.overview}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'cast' && tvShow.credits?.cast && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-4">Elenco Principal</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {movie.credits.cast.slice(0, 8).map(actor => (
+                    {tvShow.credits.cast.slice(0, 8).map(actor => (
                       <div key={actor.id} className="bg-white/5 rounded-lg p-4 text-center">
                         {actor.profile_path ? (
                           <div className="relative w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">
@@ -231,11 +244,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
                 </div>
               )}
 
-              {activeTab === 'videos' && movie.videos?.results && (
+              {activeTab === 'videos' && tvShow.videos?.results && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-4">Vídeos</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {movie.videos.results
+                    {tvShow.videos.results
                       .filter(video => video.site === 'YouTube' && video.type === 'Trailer')
                       .slice(0, 4)
                       .map(video => (
@@ -255,29 +268,29 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
                 </div>
               )}
 
-              {activeTab === 'similar' && movie.similar?.results && (
+              {activeTab === 'similar' && tvShow.similar?.results && (
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-4">Filmes Similares</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">Séries Similares</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {movie.similar.results.slice(0, 8).map(similarMovie => (
+                    {tvShow.similar.results.slice(0, 8).map(similarShow => (
                       <Link 
-                        key={similarMovie.id} 
-                        href={`/filme/${similarMovie.id}`}
+                        key={similarShow.id} 
+                        href={`/serie/${similarShow.id}`}
                         className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-all duration-200"
                       >
                         <div className="relative w-full h-48">
                           <Image
-                            src={`https://image.tmdb.org/t/p/w300${similarMovie.poster_path}`}
-                            alt={similarMovie.title}
+                            src={`https://image.tmdb.org/t/p/w300${similarShow.poster_path}`}
+                            alt={similarShow.name}
                             width={120}
                             height={180}
                             className="object-cover w-full h-full"
                           />
                         </div>
                         <div className="p-3">
-                          <h4 className="text-white font-semibold text-sm line-clamp-2">{similarMovie.title}</h4>
+                          <h4 className="text-white font-semibold text-sm line-clamp-2">{similarShow.name}</h4>
                           <p className="text-gray-400 text-xs mt-1">
-                            ⭐ {similarMovie.vote_average.toFixed(1)}
+                            ⭐ {similarShow.vote_average.toFixed(1)}
                           </p>
                         </div>
                       </Link>
@@ -296,37 +309,39 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-300">Avaliação</span>
-                  <span className="text-yellow-400 font-semibold">⭐ {movie.vote_average.toFixed(1)}</span>
+                  <span className="text-yellow-400 font-semibold">⭐ {tvShow.vote_average.toFixed(1)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-300">Votos</span>
-                  <span className="text-white font-semibold">{movie.vote_count.toLocaleString()}</span>
+                  <span className="text-white font-semibold">{tvShow.vote_count.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-300">Popularidade</span>
-                  <span className="text-white font-semibold">{Math.round(movie.popularity)}</span>
+                  <span className="text-white font-semibold">{Math.round(tvShow.popularity)}</span>
                 </div>
-                {movie.runtime && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Duração</span>
-                    <span className="text-white font-semibold">{formatRuntime(movie.runtime)}</span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Temporadas</span>
+                  <span className="text-white font-semibold">{tvShow.number_of_seasons}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Episódios</span>
+                  <span className="text-white font-semibold">{tvShow.number_of_episodes}</span>
+                </div>
               </div>
             </div>
 
-            {/* Production Info */}
-            {movie.production_companies && movie.production_companies.length > 0 && (
+            {/* Network Info */}
+            {tvShow.networks && tvShow.networks.length > 0 && (
               <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Produção</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Rede</h3>
                 <div className="space-y-3">
-                  {movie.production_companies.slice(0, 3).map(company => (
-                    <div key={company.id} className="flex items-center space-x-3">
-                      {company.logo_path ? (
+                  {tvShow.networks.map(network => (
+                    <div key={network.id} className="flex items-center space-x-3">
+                      {network.logo_path ? (
                         <div className="relative w-8 h-8">
                           <Image
-                            src={`https://image.tmdb.org/t/p/w200${company.logo_path}`}
-                            alt={company.name}
+                            src={`https://image.tmdb.org/t/p/w200${network.logo_path}`}
+                            alt={network.name}
                             width={32}
                             height={32}
                             className="object-contain w-full h-full"
@@ -334,10 +349,10 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
                         </div>
                       ) : (
                         <div className="w-8 h-8 bg-gray-600 rounded flex items-center justify-center">
-                          <span className="text-gray-400 text-xs">🏢</span>
+                          <span className="text-gray-400 text-xs">📺</span>
                         </div>
                       )}
-                      <span className="text-gray-300 text-sm">{company.name}</span>
+                      <span className="text-gray-300 text-sm">{network.name}</span>
                     </div>
                   ))}
                 </div>
@@ -345,11 +360,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
             )}
 
             {/* Languages */}
-            {movie.spoken_languages && movie.spoken_languages.length > 0 && (
+            {tvShow.spoken_languages && tvShow.spoken_languages.length > 0 && (
               <div className="bg-white/10 backdrop-blur-md rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Idiomas</h3>
                 <div className="flex flex-wrap gap-2">
-                  {movie.spoken_languages.map(lang => (
+                  {tvShow.spoken_languages.map(lang => (
                     <span 
                       key={lang.iso_639_1}
                       className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm text-gray-300"
@@ -365,4 +380,4 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
       </div>
     </div>
   );
-}
+} 

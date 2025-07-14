@@ -1,25 +1,26 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { AuthProvider } from "../contexts/AuthContext";
 
-export const metadata = {
-  title: "CineFlix - Jogo de Compatibilidade Cinematográfica",
-  description: "Descubra o quão compatíveis são seus gostos cinematográficos! Teste sua compatibilidade com filmes e receba recomendações personalizadas.",
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "CineMatch - Descubra sua compatibilidade cinematográfica",
+  description: "Plataforma para descobrir sua compatibilidade com outros cinéfilos e receber recomendações personalizadas de filmes e séries.",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="pt-BR">
-      <body className="bg-gradient-to-br from-gray-900 via-black to-gray-900 min-h-screen">
-        <Header />
-        <main className="pt-16">
+      <body className={inter.className}>
+        <AuthProvider>
           {children}
-        </main>
-        <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -23,12 +23,13 @@ export default function Hero() {
   return (
     <section className="relative h-[70vh] overflow-hidden">
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 relative">
         <Image
           src={`https://image.tmdb.org/t/p/original${featuredMovie.backdrop_path}`}
           alt={featuredMovie.title}
-          fill
-          className="object-cover"
+          width={1200}
+          height={400}
+          className="object-cover w-full h-full"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
@@ -46,7 +47,7 @@ export default function Hero() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
                               <Link
-                  href={`/movie/${featuredMovie.id}`}
+                  href={`/filme/${featuredMovie.id}`}
                   className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-200 flex items-center justify-center"
                 >
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">

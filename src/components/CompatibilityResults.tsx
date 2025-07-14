@@ -1,12 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { User } from "@/types/Compatibility";
+
+interface CompatibilityGameResult {
+  movie: { id: number; poster_path: string; title: string };
+  user1Rating: number;
+  user2Rating: number;
+  compatibility: number | null;
+  status: string;
+}
 
 interface CompatibilityResultsProps {
   user1: User;
   user2: User;
-  results: any[];
+  results: CompatibilityGameResult[];
   onPlayAgain: () => void;
 }
 
@@ -20,7 +29,7 @@ export default function CompatibilityResults({
   const ratedResults = results.filter(result => result.compatibility !== null);
   
   const overallCompatibility = ratedResults.length > 0 
-    ? Math.round(ratedResults.reduce((sum, result) => sum + result.compatibility, 0) / ratedResults.length)
+    ? Math.round(ratedResults.reduce((sum, result) => sum + (result.compatibility ?? 0), 0) / ratedResults.length)
     : 0;
 
   const getCompatibilityMessage = (score: number) => {
@@ -44,15 +53,29 @@ export default function CompatibilityResults({
     return `${rating} ⭐`;
   };
 
+  // Para bestMatch:
+  // const bestMatch = ratedResults.length > 0 
+  //   ? ratedResults.reduce((best, current) =>
+  //       current.compatibility !== null && best.compatibility !== null && current.compatibility > best.compatibility ? current : best
+  //     )
+  //   : null;
+  //
+  // Para worstMatch:
+  // const worstMatch = ratedResults.length > 0 
+  //   ? ratedResults.reduce((worst, current) =>
+  //       current.compatibility !== null && worst.compatibility !== null && current.compatibility < worst.compatibility ? current : worst
+  //     )
+  //   : null;
+
   const bestMatch = ratedResults.length > 0 
     ? ratedResults.reduce((best, current) => 
-        current.compatibility > best.compatibility ? current : best
+        current.compatibility !== null && best.compatibility !== null && current.compatibility > best.compatibility ? current : best
       )
     : null;
 
   const worstMatch = ratedResults.length > 0 
     ? ratedResults.reduce((worst, current) => 
-        current.compatibility < worst.compatibility ? current : worst
+        current.compatibility !== null && worst.compatibility !== null && current.compatibility < worst.compatibility ? current : worst
       )
     : null;
 
@@ -121,23 +144,28 @@ export default function CompatibilityResults({
         {ratedResults.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Best Match */}
-            {bestMatch && (
+            {bestMatch && bestMatch.compatibility !== null && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6">
                 <h3 className="text-xl font-bold text-green-400 mb-4">🎉 Melhor Compatibilidade</h3>
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="relative w-16 h-24 rounded-lg overflow-hidden">
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w200${bestMatch.movie.poster_path}`}
-                      alt={bestMatch.movie.title}
-                      fill
-                      className="object-cover"
-                    />
+                <Link href={`/filme/${bestMatch.movie.id}`} className="block">
+                  <div className="flex items-center space-x-4 mb-4 hover:bg-white/5 rounded-lg p-2 transition-colors duration-200">
+                    <div className="relative w-16 h-24 rounded-lg overflow-hidden">
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w200${bestMatch.movie.poster_path}`}
+                        alt={bestMatch.movie.title}
+                        width={64}
+                        height={96}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold hover:text-green-400 transition-colors duration-200">
+                        {bestMatch.movie.title}
+                      </h4>
+                      <p className="text-green-400 font-bold">{bestMatch.compatibility}%</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-white font-semibold">{bestMatch.movie.title}</h4>
-                    <p className="text-green-400 font-bold">{bestMatch.compatibility}%</p>
-                  </div>
-                </div>
+                </Link>
                 <div className="text-sm text-gray-300">
                   <p><span className="text-pink-400">{user1.name}:</span> {getRatingDisplay(bestMatch.user1Rating)}</p>
                   <p><span className="text-blue-400">{user2.name}:</span> {getRatingDisplay(bestMatch.user2Rating)}</p>
@@ -146,23 +174,28 @@ export default function CompatibilityResults({
             )}
 
             {/* Worst Match */}
-            {worstMatch && (
+            {worstMatch && worstMatch.compatibility !== null && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6">
                 <h3 className="text-xl font-bold text-red-400 mb-4">😅 Menor Compatibilidade</h3>
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="relative w-16 h-24 rounded-lg overflow-hidden">
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w200${worstMatch.movie.poster_path}`}
-                      alt={worstMatch.movie.title}
-                      fill
-                      className="object-cover"
-                    />
+                <Link href={`/filme/${worstMatch.movie.id}`} className="block">
+                  <div className="flex items-center space-x-4 mb-4 hover:bg-white/5 rounded-lg p-2 transition-colors duration-200">
+                    <div className="relative w-16 h-24 rounded-lg overflow-hidden">
+                      <Image
+                        src={`https://image.tmdb.org/t/p/w200${worstMatch.movie.poster_path}`}
+                        alt={worstMatch.movie.title}
+                        width={64}
+                        height={96}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold hover:text-red-400 transition-colors duration-200">
+                        {worstMatch.movie.title}
+                      </h4>
+                      <p className="text-red-400 font-bold">{worstMatch.compatibility}%</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-white font-semibold">{worstMatch.movie.title}</h4>
-                    <p className="text-red-400 font-bold">{worstMatch.compatibility}%</p>
-                  </div>
-                </div>
+                </Link>
                 <div className="text-sm text-gray-300">
                   <p><span className="text-pink-400">{user1.name}:</span> {getRatingDisplay(worstMatch.user1Rating)}</p>
                   <p><span className="text-blue-400">{user2.name}:</span> {getRatingDisplay(worstMatch.user2Rating)}</p>
@@ -176,33 +209,42 @@ export default function CompatibilityResults({
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8">
           <h3 className="text-xl font-bold text-white mb-6">Resultados Detalhados</h3>
           <div className="space-y-4">
-            {results.map((result, index) => (
-              <div key={result.movie.id} className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                <div className="relative w-12 h-18 rounded overflow-hidden flex-shrink-0">
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w200${result.movie.poster_path}`}
-                    alt={result.movie.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-white font-semibold">{result.movie.title}</h4>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-pink-400">{user1.name}: {getRatingDisplay(result.user1Rating)}</span>
-                    <span className="text-blue-400">{user2.name}: {getRatingDisplay(result.user2Rating)}</span>
-                    {result.compatibility !== null ? (
-                      <span className={`font-bold ${getCompatibilityColor(result.compatibility)}`}>
-                        {result.compatibility}%
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 font-bold">
-                        {result.status === 'both_not_watched' ? 'Ambos não viram' : 'Um não viu'}
-                      </span>
-                    )}
+            {results.map((result) => (
+              <Link 
+                key={result.movie.id} 
+                href={`/filme/${result.movie.id}`}
+                className="block"
+              >
+                <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors duration-200">
+                  <div className="relative w-12 h-18 rounded overflow-hidden flex-shrink-0">
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w200${result.movie.poster_path}`}
+                      alt={result.movie.title}
+                      width={48}
+                      height={72}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-white font-semibold hover:text-pink-400 transition-colors duration-200">
+                      {result.movie.title}
+                    </h4>
+                    <div className="flex items-center space-x-4 text-sm">
+                      <span className="text-pink-400">{user1.name}: {getRatingDisplay(result.user1Rating)}</span>
+                      <span className="text-blue-400">{user2.name}: {getRatingDisplay(result.user2Rating)}</span>
+                      {result.compatibility !== null ? (
+                        <span className={`font-bold ${getCompatibilityColor(result.compatibility)}`}>
+                          {result.compatibility}%
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-bold">
+                          {result.status === 'both_not_watched' ? 'Ambos não viram' : 'Um não viu'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import type { MovieTmdb } from "@/types/Tmdb";
 import type { User } from "@/types/Compatibility";
 
@@ -30,13 +31,11 @@ export default function MovieRatingCard({
   const StarRating = ({ 
     rating, 
     onRating, 
-    userId, 
     userName, 
     userColor 
   }: {
     rating: number;
     onRating: (rating: number) => void;
-    userId: string;
     userName: string;
     userColor: string;
   }) => {
@@ -98,7 +97,6 @@ export default function MovieRatingCard({
     }
     
     const difference = Math.abs(user1Rating - user2Rating);
-    const compatibility = 100 - difference * 20;
     
     if (difference === 0) return "Perfeita compatibilidade! 🎉";
     if (difference <= 1) return "Muito boa compatibilidade! 😊";
@@ -120,18 +118,25 @@ export default function MovieRatingCard({
       {/* Movie Info */}
       <div className="flex flex-col md:flex-row gap-6 mb-8">
         <div className="flex-shrink-0">
-          <div className="relative w-48 h-72 rounded-lg overflow-hidden">
-            <Image
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              alt={movie.title}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <Link href={`/filme/${movie.id}`} className="block">
+            <div className="relative w-48 h-72 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-200">
+              <Image
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title}
+                width={192}
+                height={288}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          </Link>
         </div>
         
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-white mb-2">{movie.title}</h2>
+          <Link href={`/filme/${movie.id}`} className="block">
+            <h2 className="text-2xl font-bold text-white mb-2 hover:text-pink-400 transition-colors duration-200">
+              {movie.title}
+            </h2>
+          </Link>
           <p className="text-gray-300 mb-4">{movie.overview}</p>
           
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -154,7 +159,6 @@ export default function MovieRatingCard({
         <StarRating
           rating={user1Rating}
           onRating={(rating) => onRating(movie.id, rating, user1.id)}
-          userId={user1.id}
           userName={user1.name}
           userColor="text-pink-400"
         />
@@ -162,7 +166,6 @@ export default function MovieRatingCard({
         <StarRating
           rating={user2Rating}
           onRating={(rating) => onRating(movie.id, rating, user2.id)}
-          userId={user2.id}
           userName={user2.name}
           userColor="text-blue-400"
         />

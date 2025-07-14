@@ -17,10 +17,14 @@ export function useFetch<T>(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const optionsString = JSON.stringify(options);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         const response = await fetch(baseUrl + route, options);
 
         if (!response.ok)
@@ -36,7 +40,7 @@ export function useFetch<T>(
     };
 
     fetchData();
-  }, []);
+  }, [route, baseUrl, optionsString]);
 
   return { data, error, loading };
 }

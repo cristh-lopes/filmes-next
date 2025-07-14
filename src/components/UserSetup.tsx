@@ -89,7 +89,7 @@ export default function UserSetup({ onStart }: UserSetupProps) {
           <ul className="text-gray-200 text-left space-y-2">
             <li>• Vocês avaliarão 10 filmes juntos</li>
             <li>• Dê notas de 1 a 5 estrelas para cada filme</li>
-            <li>• Selecione "Nunca vi" se não assistiu ao filme</li>
+            <li>• Selecione &quot;Nunca vi&quot; se não assistiu ao filme</li>
             <li>• O sistema calculará sua compatibilidade</li>
             <li>• Receberão recomendações personalizadas</li>
           </ul>

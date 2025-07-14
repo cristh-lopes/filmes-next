@@ -8,6 +8,14 @@ import MovieRatingCard from "./MovieRatingCard";
 import CompatibilityResults from "./CompatibilityResults";
 import UserSetup from "./UserSetup";
 
+interface CompatibilityGameResult {
+  movie: MovieTmdb;
+  user1Rating: number;
+  user2Rating: number;
+  compatibility: number | null;
+  status: string;
+}
+
 interface CompatibilityGameProps {
   user1: User;
   user2: User;
@@ -15,7 +23,7 @@ interface CompatibilityGameProps {
 
 export default function CompatibilityGame({ user1, user2 }: CompatibilityGameProps) {
   const [currentRound, setCurrentRound] = useState(1);
-  const [gameResults, setGameResults] = useState<any[]>([]);
+  const [gameResults, setGameResults] = useState<CompatibilityGameResult[]>([]);
   const [gameStatus, setGameStatus] = useState<'setup' | 'playing' | 'completed'>('setup');
   const [user1Ratings, setUser1Ratings] = useState<Record<number, number>>({});
   const [user2Ratings, setUser2Ratings] = useState<Record<number, number>>({});
@@ -36,49 +44,45 @@ export default function CompatibilityGame({ user1, user2 }: CompatibilityGamePro
   };
 
   const calculateCompatibility = () => {
-    const results = currentMovies.map(movie => {
-      const user1Rating = user1Ratings[movie.id] || 0;
-      const user2Rating = user2Ratings[movie.id] || 0;
-      
-      // Se ambos não viram o filme, não conta para compatibilidade
-      if (user1Rating === -1 && user2Rating === -1) {
+    return currentMovies
+      .filter(movie => {
+        const user1Rating = user1Ratings[movie.id] || 0;
+        const user2Rating = user2Ratings[movie.id] || 0;
+        // Não inclui se um dos dois não avaliou
+        return !(user1Rating === 0 || user2Rating === 0);
+      })
+      .map(movie => {
+        const user1Rating = user1Ratings[movie.id] || 0;
+        const user2Rating = user2Ratings[movie.id] || 0;
+        // Se ambos não viram o filme
+        if (user1Rating === -1 && user2Rating === -1) {
+          return {
+            movie,
+            user1Rating,
+            user2Rating,
+            compatibility: null,
+            status: 'both_not_watched'
+          };
+        }
+        // Se apenas um não viu
+        if (user1Rating === -1 || user2Rating === -1) {
+          return {
+            movie,
+            user1Rating,
+            user2Rating,
+            compatibility: null,
+            status: 'one_not_watched'
+          };
+        }
+        const compatibility = 100 - Math.abs(user1Rating - user2Rating) * 20;
         return {
           movie,
           user1Rating,
           user2Rating,
-          compatibility: null,
-          status: 'both_not_watched'
+          compatibility: Math.max(0, compatibility),
+          status: 'rated'
         };
-      }
-      
-      // Se apenas um não viu, não conta para compatibilidade
-      if (user1Rating === -1 || user2Rating === -1) {
-        return {
-          movie,
-          user1Rating,
-          user2Rating,
-          compatibility: null,
-          status: 'one_not_watched'
-        };
-      }
-      
-      // Se um dos dois não avaliou, não conta
-      if (user1Rating === 0 || user2Rating === 0) {
-        return null;
-      }
-      
-      const compatibility = 100 - Math.abs(user1Rating - user2Rating) * 20;
-      
-      return {
-        movie,
-        user1Rating,
-        user2Rating,
-        compatibility: Math.max(0, compatibility),
-        status: 'rated'
-      };
-    }).filter(Boolean);
-
-    return results;
+      });
   };
 
   const startGame = (newUser1: User, newUser2: User) => {
@@ -89,20 +93,8 @@ export default function CompatibilityGame({ user1, user2 }: CompatibilityGamePro
 
   const completeGame = () => {
     const results = calculateCompatibility();
-    setGameResults(results);
+    setGameResults(results.filter(Boolean));
     setGameStatus('completed');
-  };
-
-  const canComplete = () => {
-    const ratedMovies = currentMovies.filter(movie => {
-      const user1Rating = user1Ratings[movie.id] || 0;
-      const user2Rating = user2Ratings[movie.id] || 0;
-      
-      // Conta se ambos avaliaram (incluindo "nunca vi")
-      return user1Rating !== 0 && user2Rating !== 0;
-    });
-    
-    return ratedMovies.length >= Math.min(5, totalRounds);
   };
 
   if (gameStatus === 'setup') {

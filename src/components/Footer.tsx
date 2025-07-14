@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="bg-black border-t border-gray-800">
@@ -38,9 +40,9 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Links Rápidos</h3>
             <ul className="space-y-2">
               <li>
-                <a href="/" className="text-gray-400 hover:text-white transition-colors duration-200">
+                <Link href="/">
                   Início
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="/compatibilidade" className="text-gray-400 hover:text-white transition-colors duration-200">
